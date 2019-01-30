@@ -5,7 +5,8 @@ FROM ubuntu:18.04
 # apt-get python and build essentials
 
 RUN echo 'deb http://security.ubuntu.com/ubuntu xenial-security main' >> /etc/apt/sources.list
-RUN apt-get update --fix-missing && apt-get install -qy \
+RUN apt-get update --fix-missing && apt-get install tzdata -qy &&\
+	apt-get install -qy \
 	cmake \
 	python-numpy python-scipy python-pip python-setuptools \
 	python3-numpy python3-scipy python3-pip python3-setuptools \
@@ -13,8 +14,13 @@ RUN apt-get update --fix-missing && apt-get install -qy \
 	xauth \
 	libjpeg-dev libtiff5-dev libjasper1 libjasper-dev libpng-dev libavcodec-dev libavformat-dev \
 	libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libgtk2.0-dev libatlas-base-dev \
-	libv4l-0 libavcodec-dev libavformat-dev libavutil-dev \ 
+	libv4l-0 libavcodec-dev libavformat-dev libavutil-dev ffmpeg \ 
 	libswscale-dev libavresample-dev \
+    libgstreamer1.0-dev \
+    vdpau-va-driver libvdpau-va-gl1 vdpauinfo \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad\
+    libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-libav gstreamer1.0-vaapi gstreamer1.0-tools libavcodec-dev \
 	gfortran python2.7-dev python3-dev build-essential pkg-config
 
 
@@ -40,13 +46,16 @@ RUN \
 	-D WITH_OPENCL=OFF \
 	-D WITH_OPENCLAMDBLAS=OFF \
 	-D WITH_OPENCLAMDFFT=OFF \
+	-D WITH_GSTREAMER=ON \
+	-D WITH_FFMPEG=ON \
 	-D CMAKE_CXX_FLAGS="-O3 -funsafe-math-optimizations" \
 	-D CMAKE_C_FLAGS="-O3 -funsafe-math-optimizations" \
 	.. && make -j $(nproc) && make install && \
 	cd /root && rm -rf opencv-3.4.5 opencv_contrib-3.4.5
 
 # Remove temporary packages, but keep ones needed by opencv
-RUN apt-get purge -qy \
+RUN apt-get install x11-apps vainfo -qy &&\
+	apt-get purge -qy \
 	build-essential \
 	libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
 	libv4l-dev libxvidcore-dev libx264-dev libgtk2.0-dev libatlas-base-dev \
