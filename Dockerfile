@@ -54,10 +54,9 @@ RUN \
 	cd /root && rm -rf opencv-3.4.5 opencv_contrib-3.4.5
 
 # Remove temporary packages, but keep ones needed by opencv
-RUN apt-get install x11-apps vainfo -qy &&\
+RUN apt-get install x11-apps vainfo git -qy &&\
 	apt-get purge -qy \
 	build-essential \
-	git \
 	libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
 	libv4l-dev libxvidcore-dev libx264-dev libgtk2.0-dev libatlas-base-dev \
 	gfortran pkg-config cmake && \
