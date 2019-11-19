@@ -62,5 +62,6 @@ RUN apt-get install x11-apps vainfo git -qy &&\
 	gfortran pkg-config cmake && \
 	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN pip3 install pika streamlink setproctitle
 
 CMD ["bash"]
