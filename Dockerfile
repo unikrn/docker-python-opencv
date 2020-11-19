@@ -1,14 +1,15 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 #thanks https://github.com/lzane/Ubuntu-OpenCV3-docker/blob/master/Dockerfile
 
 # apt-get python and build essentials
 
+RUN echo 'deb http://security.ubuntu.com/ubuntu focal-security main' >> /etc/apt/sources.list
 RUN echo 'deb http://security.ubuntu.com/ubuntu xenial-security main' >> /etc/apt/sources.list
-RUN apt-get update --fix-missing && apt-get install tzdata -qy &&\
-	apt-get install -qy \
+RUN apt update --fix-missing && apt-get install tzdata -qy &&\
+	apt install -qy \
 	cmake \
-	python-numpy python-scipy python-pip python-setuptools \
+	x11-apps vainfo git\
 	python3-numpy python3-scipy python3-pip python3-setuptools \
 	wget \
 	xauth \
@@ -17,29 +18,30 @@ RUN apt-get update --fix-missing && apt-get install tzdata -qy &&\
 	libv4l-0 libavcodec-dev libavformat-dev libavutil-dev ffmpeg \ 
 	libswscale-dev libavresample-dev \
     libgstreamer1.0-dev \
-    vdpau-va-driver libvdpau-va-gl1 vdpauinfo \
+    libvdpau-va-gl1 vdpauinfo \
     gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad\
     libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev \
     gstreamer1.0-libav gstreamer1.0-vaapi gstreamer1.0-tools libavcodec-dev \
-	gfortran python2.7-dev python3-dev build-essential pkg-config
-
-
-# Build OpenCV 3.4.5
-RUN \
+	gfortran python3-dev build-essential pkg-config &&\
+	apt upgrade -qy &&\
+	apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* &&\
+#
+# Build OpenCV 3.4.12
+#RUN \
 	cd /root && \
-	wget https://github.com/opencv/opencv/archive/3.4.5.tar.gz -O opencv.tar.gz && \
+	wget -q https://github.com/opencv/opencv/archive/3.4.12.tar.gz -O opencv.tar.gz && \
 	tar zxf opencv.tar.gz && rm -f opencv.tar.gz && \
-	wget https://github.com/opencv/opencv_contrib/archive/3.4.5.tar.gz -O contrib.tar.gz && \
+	wget -q https://github.com/opencv/opencv_contrib/archive/3.4.12.tar.gz -O contrib.tar.gz && \
 	tar zxf contrib.tar.gz && rm -f contrib.tar.gz && \
-	cd opencv-3.4.5 && mkdir build && cd build && \
+	cd opencv-3.4.12 && mkdir build && cd build && \
 	cmake -D CMAKE_BUILD_TYPE=RELEASE \
 	-D CMAKE_INSTALL_PREFIX=/usr/local \
 	-D INSTALL_PYTHON_EXAMPLES=OFF \
-	-D OPENCV_EXTRA_MODULES_PATH=/root/opencv_contrib-3.4.5/modules \
+	-D OPENCV_EXTRA_MODULES_PATH=/root/opencv_contrib-3.4.12/modules \
 	-D BUILD_DOCS=OFF \
 	-D BUILD_TESTS=OFF \
 	-D BUILD_EXAMPLES=OFF \
-	-D BUILD_opencv_python2=ON \
+	-D BUILD_opencv_python2=OFF \
 	-D BUILD_opencv_python3=ON \
 	-D WITH_1394=OFF \
 	-D WITH_MATLAB=OFF \
@@ -51,17 +53,24 @@ RUN \
 	-D CMAKE_CXX_FLAGS="-O3 -funsafe-math-optimizations" \
 	-D CMAKE_C_FLAGS="-O3 -funsafe-math-optimizations" \
 	.. && make -j $(nproc) && make install && \
-	cd /root && rm -rf opencv-3.4.5 opencv_contrib-3.4.5
-
+	cd /root && rm -rf opencv-3.4.12 opencv_contrib-3.4.12 &&\
+#	
 # Remove temporary packages, but keep ones needed by opencv
-RUN apt-get install x11-apps vainfo git -qy &&\
-	apt-get purge -qy \
+#RUN  
+	apt purge -qy \
 	build-essential \
-	libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
+	libpng12-dev \
 	libv4l-dev libxvidcore-dev libx264-dev libgtk2.0-dev libatlas-base-dev \
+	libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev \
+	libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libgtk2.0-dev libatlas-base-dev \
+	libavcodec-dev libavformat-dev libavutil-dev \ 
+	libswscale-dev libavresample-dev \
+    libgstreamer1.0-dev \
+    python3-dev build-essential pkg-config \
 	gfortran pkg-config cmake && \
-	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+	apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN pip3 install pika streamlink setproctitle
+RUN pip3 install pika streamlink setproctitle matplotlib
+
 
 CMD ["bash"]
